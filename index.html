@@ -105,6 +105,16 @@
       gap: 20px;
     }
 
+    /* Top Bar: Stepper + Music Pill */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     /* Progress Stepper */
     .stepper {
       display: flex;
@@ -142,6 +152,61 @@
       color: var(--text-muted);
       letter-spacing: 0.03em;
       margin-left: 4px;
+    }
+
+    /* Subtle Music Toggle Pill */
+    .music-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(10px);
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 14px rgba(68, 42, 107, 0.05);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .music-pill:hover {
+      background: #FFFFFF;
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+    }
+
+    .music-pill.playing {
+      color: var(--accent-purple);
+      background: var(--bg-soft);
+      border-color: rgba(124, 82, 181, 0.28);
+    }
+
+    .eq-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 11px;
+    }
+
+    .eq-bar {
+      width: 2.5px;
+      height: 4px;
+      background: currentColor;
+      border-radius: 2px;
+      transition: height 0.2s ease;
+    }
+
+    .music-pill.playing .eq-bar:nth-child(1) { animation: eqBounce 0.75s ease-in-out infinite; }
+    .music-pill.playing .eq-bar:nth-child(2) { animation: eqBounce 0.55s ease-in-out infinite 0.15s; }
+    .music-pill.playing .eq-bar:nth-child(3) { animation: eqBounce 0.65s ease-in-out infinite 0.3s; }
+
+    @keyframes eqBounce {
+      0%, 100% { height: 3px; }
+      50% { height: 11px; }
     }
 
     /* Main Card */
@@ -458,15 +523,8 @@
     .honest-header {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 480px) {
-      .honest-header {
-        flex-direction: column;
-        text-align: center;
-      }
+      justify-content: center;
+      margin-bottom: 18px;
     }
 
     .honest-letter p {
@@ -480,47 +538,11 @@
     }
 
     /* Step 4: The Question & Equal Choices */
-    .details-pill-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 20px 0 26px;
-    }
-
-    @media (max-width: 540px) {
-      .details-pill-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .detail-box {
-      background: var(--bg-soft);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      text-align: center;
-    }
-
-    .detail-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 3px;
-    }
-
-    .detail-value {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
     .choices-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-top: 8px;
+      margin-top: 18px;
     }
 
     @media (max-width: 520px) {
@@ -587,17 +609,6 @@
       display: block;
     }
 
-    .reply-card {
-      background: var(--bg-soft);
-      border: 1px dashed rgba(124, 82, 181, 0.35);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      margin: 18px auto 14px;
-      max-width: 460px;
-      font-size: 0.9rem;
-      color: var(--text-primary);
-    }
-
     /* Navigation Buttons */
     .nav-bar {
       display: flex;
@@ -648,32 +659,12 @@
       font-size: 0.84rem;
       padding: 8px 16px;
     }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--text-primary);
-      color: #FFFFFF;
-      padding: 10px 20px;
-      border-radius: 999px;
-      font-size: 0.86rem;
-      font-weight: 500;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.28s ease;
-      z-index: 100;
-      box-shadow: 0 10px 25px rgba(32, 20, 50, 0.25);
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 <body>
+
+  <!-- Background Audio (Instrumental) -->
+  <audio id="bgAudio" loop preload="auto"></audio>
 
   <!-- Botanical Purple Flower Background Accents -->
   <div class="botanical-bg" aria-hidden="true">
@@ -707,36 +698,45 @@
   </div>
 
   <main class="app-shell">
-    <!-- Top Progress Indicator -->
-    <nav class="stepper" aria-label="Progress">
-      <span class="step-dot active" onclick="goToStep(1)" title="Step 1"></span>
-      <span class="step-dot" onclick="goToStep(2)" title="Step 2"></span>
-      <span class="step-dot" onclick="goToStep(3)" title="Step 3"></span>
-      <span class="step-dot" onclick="goToStep(4)" title="Step 4"></span>
-      <span class="step-label" id="stepCounter">1 of 4</span>
-    </nav>
+    <!-- Top Progress & Subtle Instrumental Music Pill -->
+    <div class="top-bar">
+      <nav class="stepper" aria-label="Progress">
+        <span class="step-dot active" onclick="goToStep(1)" title="Step 1"></span>
+        <span class="step-dot" onclick="goToStep(2)" title="Step 2"></span>
+        <span class="step-dot" onclick="goToStep(3)" title="Step 3"></span>
+        <span class="step-dot" onclick="goToStep(4)" title="Step 4"></span>
+        <span class="step-label" id="stepCounter">1 of 4</span>
+      </nav>
+
+      <button class="music-pill" id="musicToggleBtn" onclick="toggleMusic()" type="button" aria-label="Toggle background music">
+        <span class="eq-bars" aria-hidden="true">
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+        </span>
+        <span id="musicLabel">Music: Off</span>
+      </button>
+    </div>
 
     <section class="stage-card">
       <!-- STEP 1: OPENING NOTE -->
       <div class="step-view active" id="step-1">
         <div class="cover-center">
-          <span class="eyebrow">✿ A Quiet Little Note</span>
           <div class="cover-sticker-box">
             <div class="sticker-wrap">
               <img id="coverSticker" class="sticker-img sticker-lg" alt="Cute sticker" />
             </div>
           </div>
-          <h1 id="openingTitle">Heii Owa, uhmm I made a smth for you</h1>
+          <h1 id="openingTitle">Heii Owa, uhmm I made a smth for u..</h1>
           <p class="lead-text" id="openingText" style="max-width: 500px;"></p>
-          <button class="btn btn-primary" onclick="goToStep(2)">
-            Open Note →
+          <button class="btn btn-primary" onclick="handleStartOpen()">
+            Open →
           </button>
         </div>
       </div>
 
       <!-- STEP 2: APPRECIATION CARDS (CLICK TO CENTER & ENLARGE) -->
       <div class="step-view" id="step-2">
-        <span class="eyebrow">✿ First, Just Appreciation</span>
         <h2>A few things I genuinely appreciate about you</h2>
         <p class="lead-text" style="margin-bottom: 8px;">
           Click any card you like—no ulterior motive, just things na I want to share cuz I'm glad exist in our friendship.
@@ -746,27 +746,18 @@
 
         <div class="nav-bar">
           <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
-          <button class="btn btn-primary" onclick="goToStep(3)">Next: Being Honest →</button>
+          <button class="btn btn-primary" onclick="goToStep(3)">Next →</button>
         </div>
       </div>
 
       <!-- STEP 3: HONEST ADMISSIONS (ZERO PRESSURE) -->
       <div class="step-view" id="step-3">
-        <span class="eyebrow">✿ Before I Ask</span>
-        <h2>Just being completely honest with you</h2>
+        <h2>Before I ask...</h2>
 
         <div class="honest-letter">
           <div class="honest-header">
-            <div class="sticker-wrap" style="flex-shrink: 0;">
+            <div class="sticker-wrap">
               <img id="honestSticker" class="sticker-img sticker-md" alt="Honest cat sticker" />
-            </div>
-            <div>
-              <strong style="font-size: 1.04rem; color: var(--text-primary); display: block; margin-bottom: 4px;">
-                No convincing, no expectations.
-              </strong>
-              <span style="font-size: 0.88rem; color: var(--text-muted);">
-                I wanted to say this clearly before anything else.
-              </span>
             </div>
           </div>
           <div id="honestBody"></div>
@@ -774,16 +765,14 @@
 
         <div class="nav-bar">
           <button class="btn btn-ghost" onclick="goToStep(2)">← Back</button>
-          <button class="btn btn-primary" onclick="goToStep(4)">See the Question →</button>
+          <button class="btn btn-primary" onclick="goToStep(4)">Next →</button>
         </div>
       </div>
 
       <!-- STEP 4: THE QUESTION & EQUAL CHOICES -->
       <div class="step-view" id="step-4">
         <div id="questionContainer">
-          <span class="eyebrow">✿ The Question</span>
-          <h2 id="questionTitle">Would you like to go to Prom with me?</h2>
-          <p class="lead-text" id="questionSubtitle" style="margin-bottom: 24px;"></p>
+          <h2 id="questionTitle">So, with zero pressure—would you want to go to Prom with me?</h2>
 
           <div class="choices-row">
             <button class="choice-btn choice-yes" onclick="selectOutcome('yes')">
@@ -796,7 +785,7 @@
           </div>
 
           <div class="nav-bar" style="margin-top: 22px;">
-            <button class="btn btn-ghost btn-sm" onclick="goToStep(3)">← Re-read note</button>
+            <button class="btn btn-ghost btn-sm" onclick="goToStep(3)">← Back</button>
           </div>
         </div>
 
@@ -849,11 +838,15 @@
 
   <script>
     // =========================================================================
-    //  EDIT YOUR NAMES, MESSAGES, EVENT DETAILS & STICKERS RIGHT HERE
+    //  EDIT YOUR NAMES, MESSAGES, MUSIC & STICKERS RIGHT HERE
     // =========================================================================
     const CONFIG = {
       herName: "Owa",
       yourName: "Your Name",
+
+      // Background Music (Upload your instrumental "Mystery Girl" file to GitHub as "bgm.mp3")
+      musicFile: "bgm.mp3",
+      musicVolume: 0.35, // Gentle background volume (0.0 to 1.0)
 
       // Step 1: Opening
       openingTitle: "Heii Owa, uhmm I made a smth for u..",
@@ -898,8 +891,6 @@
 
       // Step 4: The Question
       questionTitle: "So, with zero pressure—would you want to go to Prom with me?",
-      questionSubtitle:
-        "Whichever button feels right to you is completely okay with me.",
 
       // Outcome 1: If she says Yes
       yesSticker:
@@ -917,12 +908,112 @@
     };
 
     // =========================================================================
-    //  APP LOGIC (NO NEED TO EDIT BELOW THIS LINE)
+    //  APP LOGIC & INSTRUMENTAL BGM ENGINE
     // =========================================================================
     let currentStep = 1;
     let activeCardIndex = 0;
+    let isMusicPlaying = false;
+    let usingSynthFallback = false;
+    let synthCtx = null;
+    let synthTimer = null;
+
+    const bgAudio = document.getElementById("bgAudio");
+
+    function updateMusicUI(playing) {
+      isMusicPlaying = playing;
+      const btn = document.getElementById("musicToggleBtn");
+      const label = document.getElementById("musicLabel");
+      btn.classList.toggle("playing", playing);
+      label.textContent = playing ? "Instrumental: On" : "Music: Off";
+    }
+
+    // Soft dream-pop electric-piano fallback if bgm.mp3 isn't uploaded yet
+    function startSoftSynthFallback() {
+      if (synthTimer) return;
+      usingSynthFallback = true;
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!synthCtx) synthCtx = new AudioContextClass();
+      if (synthCtx.state === "suspended") synthCtx.resume();
+
+      const chords = [
+        [261.63, 329.63, 392.00, 493.88], // Cmaj7
+        [220.00, 261.63, 329.63, 392.00], // Am7
+        [174.61, 220.00, 261.63, 329.63], // Fmaj7
+        [196.00, 246.94, 293.66, 349.23]  // G7
+      ];
+      let step = 0;
+
+      const playChord = () => {
+        if (!isMusicPlaying || !synthCtx) return;
+        const now = synthCtx.currentTime;
+        const notes = chords[step % chords.length];
+        notes.forEach((freq, idx) => {
+          const osc = synthCtx.createOscillator();
+          const gain = synthCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.0001, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.028, now + idx * 0.08 + 0.35);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.7);
+          osc.connect(gain);
+          gain.connect(synthCtx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + 2.8);
+        });
+        step++;
+      };
+
+      playChord();
+      synthTimer = setInterval(playChord, 2800);
+    }
+
+    function stopSoftSynthFallback() {
+      if (synthTimer) {
+        clearInterval(synthTimer);
+        synthTimer = null;
+      }
+    }
+
+    function startMusic() {
+      bgAudio.volume = CONFIG.musicVolume;
+      const playPromise = bgAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            usingSynthFallback = false;
+            updateMusicUI(true);
+          })
+          .catch(() => {
+            // If bgm.mp3 isn't present in the folder yet, play gentle instrumental chords
+            updateMusicUI(true);
+            startSoftSynthFallback();
+          });
+      }
+    }
+
+    function stopMusic() {
+      bgAudio.pause();
+      stopSoftSynthFallback();
+      updateMusicUI(false);
+    }
+
+    function toggleMusic() {
+      if (isMusicPlaying) {
+        stopMusic();
+      } else {
+        startMusic();
+      }
+    }
+
+    function handleStartOpen() {
+      if (!isMusicPlaying) {
+        startMusic();
+      }
+      goToStep(2);
+    }
 
     function initPage() {
+      bgAudio.src = CONFIG.musicFile;
       document.getElementById("openingTitle").textContent = CONFIG.openingTitle;
       document.getElementById("openingText").textContent = CONFIG.openingText;
       document.getElementById("coverSticker").src = CONFIG.coverSticker;
@@ -961,7 +1052,6 @@
 
       // Step 4: Question
       document.getElementById("questionTitle").textContent = CONFIG.questionTitle;
-      document.getElementById("questionSubtitle").textContent = CONFIG.questionSubtitle;
 
       // Outcomes
       document.getElementById("yesSticker").src = CONFIG.yesSticker;
